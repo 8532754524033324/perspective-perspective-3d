@@ -1,1 +1,1364 @@
+<!DOCTYPE html>
+<html lang="ja">
 
+<head>
+    <meta charset="UTF-8" />
+    <title>perspective と transform-style: preserve-3d 実験ラボ</title>
+
+    <style>
+        /* --- 1. グローバルデザイン設定 --- */
+        :root {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-dark-accent: #0f172a;
+            --color-text-main: #334155;
+            --color-text-muted: #64748b;
+            --color-primary: #3b82f6;
+            --color-accent-flat: #ef4444;
+            --color-success: #10b981;
+            --grid-pattern: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--color-text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 40px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- 2. 新・洗練されたヘッダーデザイン --- */
+        .hero-header {
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 40px;
+            background: var(--bg-dark-accent);
+            border-radius: 20px;
+            padding: 40px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-success), var(--color-accent-flat));
+        }
+
+        .hero-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #ffffff 60%, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-header .subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .header-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .header-card {
+            background: midnightblue;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .header-card h2 {
+            font-size: 14px;
+            color: #f8fafc;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-card h2::before {
+            display: none;
+            /* グローバルH2のスタイルをリセット */
+        }
+
+        .header-card p {
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .badge-mini {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* --- 3. セクション＆共通レイアウト --- */
+        section {
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 40px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            color: var(--bg-dark-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 22px;
+            background: linear-gradient(to bottom, var(--color-primary), #60a5fa);
+            border-radius: 4px;
+        }
+
+        p {
+            color: var(--color-text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 0 0 16px 0;
+        }
+
+        .hero-perspective-compare {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .compare-item {
+            flex: 1;
+            margin: 0;
+            background-color: var(--bg-light-accent);
+            /* 背景色に合わせる */
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .compare-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .compare-item figcaption {
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* スマホ対応 */
+        @media (max-width: 768px) {
+            .hero-perspective-compare {
+                flex-direction: column;
+            }
+        }
+
+        code {
+            background: #e2e8f0;
+            color: var(--bg-dark-accent);
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-family: 'Fira Code', Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+        }
+
+        strong {
+            color: var(--bg-dark-accent);
+        }
+
+        .lab-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            padding: 30px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .comparison-container {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        /* --- 4. カラム・パーツ共通化（重複排除） --- */
+        .column {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            width: calc(50% - 12px);
+            min-width: 440px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column .title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--bg-dark-accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            margin: 15px 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .description {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+            margin-top: 15px;
+            flex-grow: 1;
+        }
+
+        /* バッジ共通設定 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            color: white;
+        }
+
+        .badge-cone {
+            background-color: var(--color-primary);
+        }
+
+        .badge-parallel {
+            background-color: var(--color-text-muted);
+        }
+
+        /* コードプレビュー共通設定 */
+        .code-preview-badge {
+            font-size: 11px;
+            color: var(--color-success);
+            background: var(--bg-dark-accent);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* コントロールパネル共通設定 */
+        .control-panel {
+            background: #f8fafc;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .slider-container label {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--color-text-main);
+        }
+
+        .slider-container input {
+            flex-grow: 1;
+            max-width: 150px;
+            cursor: pointer;
+        }
+
+        .view-angle-display {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--color-primary);
+            min-width: 75px;
+            text-align: right;
+        }
+
+        /* --- 5. シミュレーター空間描画エリア --- */
+        .scene-sim {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background-color: #f8fafc;
+            background-image: var(--grid-pattern);
+            background-size: 16px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .front-stage {
+            background-color: var(--bg-dark-accent);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 1.5px);
+            border: none;
+        }
+
+        /* 断面図パーツ (Side View) */
+        .eye {
+            position: absolute;
+            left: 20px;
+            top: 85px;
+            width: 30px;
+            height: 30px;
+            background: var(--bg-dark-accent);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .eye-parallel {
+            position: absolute;
+            left: 30px;
+            top: 40px;
+            width: 4px;
+            height: 120px;
+            background: var(--bg-dark-accent);
+            border-radius: 2px;
+            z-index: 10;
+        }
+
+        .vision-line {
+            position: absolute;
+            left: 35px;
+            width: 1000px;
+            height: 1px;
+            border-top: 1px dashed rgba(239, 68, 68, 0.5);
+        }
+
+        .line-top-cone {
+            top: 100px;
+            transform-origin: left center;
+            transform: rotate(-16deg);
+        }
+
+        .line-bottom-cone {
+            top: 100px;
+            transform-origin: left center;
+            transform: rotate(16deg);
+        }
+
+        .line-top-parallel {
+            top: 40px;
+        }
+
+        .line-bottom-parallel {
+            top: 160px;
+        }
+
+        .monitor-line {
+            position: absolute;
+            left: 240px;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: var(--color-primary);
+            box-shadow: 0 0 8px var(--color-primary);
+            z-index: 5;
+        }
+
+        .monitor-label {
+            position: absolute;
+            left: 248px;
+            top: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--color-primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 6;
+        }
+
+        .z-grid {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-left: 1px dotted #cbd5e1;
+            font-size: 9px;
+            font-family: monospace;
+            color: #94a3b8;
+            padding-left: 4px;
+            padding-top: 175px;
+            pointer-events: none;
+        }
+
+        .element-side {
+            position: absolute;
+            width: 10px;
+            height: 60px;
+            background: rgba(59, 130, 246, 0.8);
+            border: 2px solid var(--color-primary);
+            border-radius: 2px;
+            top: 70px;
+            z-index: 4;
+            transform: translateX(-50%);
+        }
+
+        /* フロントビュー (3D空間) */
+        .camera-rotation-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+        }
+
+        .perspective-container {
+            width: 160px;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .virtual-monitor-plane {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.02);
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        .element-front {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(29, 78, 216, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 6px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 600;
+            font-size: 11px;
+            position: absolute;
+        }
+
+        /* --- 6. セクション2: preserve-3d 実証 --- */
+        .proof-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .demo-block {
+            text-align: center;
+            background: #f8fafc;
+            background-image: var(--grid-pattern);
+            background-size: 20px 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            width: calc(50% - 15px);
+            min-width: 440px;
+            box-sizing: border-box;
+        }
+
+        .scene {
+            width: 240px;
+            height: 240px;
+            margin: 0 auto;
+            position: relative;
+            perspective: 800px;
+        }
+
+        .cube-parent {
+            width: 120px;
+            height: 120px;
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            animation: rotateParent 8s linear infinite;
+        }
+
+        .cube-parent.flat {
+            transform-style: flat;
+        }
+
+        .cube-parent.p3d {
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rotateParent {
+            0% {
+                transform: rotateX(0deg) rotateY(0deg);
+            }
+
+            50% {
+                transform: rotateX(45deg) rotateY(180deg);
+            }
+
+            100% {
+                transform: rotateX(0deg) rotateY(360deg);
+            }
+        }
+
+        .face {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .front {
+            transform: rotateY(0deg) translateZ(60px);
+            background: rgba(59, 130, 246, 0.45);
+        }
+
+        .back {
+            transform: rotateY(180deg) translateZ(60px);
+            background: rgba(100, 116, 139, 0.55);
+        }
+
+        .right {
+            transform: rotateY(90deg) translateZ(60px);
+            background: rgba(16, 185, 129, 0.45);
+        }
+
+        .left {
+            transform: rotateY(-90deg) translateZ(60px);
+            background: rgba(245, 158, 11, 0.45);
+        }
+
+        .top {
+            transform: rotateX(90deg) translateZ(60px);
+            background: rgba(168, 85, 247, 0.45);
+        }
+
+        .bottom {
+            transform: rotateX(-90deg) translateZ(60px);
+            background: rgba(239, 68, 68, 0.45);
+        }
+
+        .lab-tag {
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--color-text-main);
+        }
+
+        .lab-tag span {
+            font-family: monospace;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .tag-flat {
+            background: var(--color-accent-flat);
+        }
+
+        .tag-p3d {
+            background: var(--color-primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero-header">
+        <h1>transformが描く3D空間</h1>
+        <div class="subtitle">奥行きの制御構造を視覚化してみる</div>
+
+        <div class="header-summary-grid">
+            <div class="header-card">
+                <h2>
+                    <span class="badge-mini" style="background: var(--color-primary);">Property 01</span>
+                    <span style="color: gold;">perspective</span>
+                </h2>
+                <p>奥行き方向の平行線を「消失点へと収束する線」に変え、四角錐の視界を作ることで、手前を大きく・奥を小さく映す<b>遠近感</b>を生み出します。</p>
+            </div>
+            <div class="header-card">
+                <h2>
+                    <span class="badge-mini" style="background: var(--color-success);">Property 02</span>
+                    <span style="color: gold;">transform-style: preserve-3d</span>
+
+                </h2>
+                <p>初期値 <code>flat</code> による「Z軸のデータ没収（平面潰し）」を解除し、子要素が持つ独自の立体空間ルールを<b>親の3D空間へそのまま同期・結合</b>させます。</p>
+            </div>
+        </div>
+    </header>
+    
+
+    <section>
+        <h2>1. perspective は「平行投影を四角錐に変える」</h2>
+
+        
+
+        <div class="hero-perspective-compare" style="height: 450px;">
+            <figure class="compare-item">
+                <div class="img-wrapper">
+                    <img src="./img/perspectiveあり.png" alt="perspectiveありの製図（二点透視図法）：消失点に向かってすぼまり、奥の辺ほど短くなる">
+                </div>
+                <figcaption>2. perspective「あり」の透視投影（3D空間表現）</figcaption>
+            </figure>
+            <figure class="compare-item">
+                <div class="img-wrapper">
+                    <img src="./img/perspectiveなし.png" alt="perspectiveなしの製図（等角投影図）：奥行きの線が平行で、すべての辺が同じ長さ">
+                </div>
+                <figcaption>1. perspective「なし」の等角投影（平行投影）</figcaption>
+            </figure>
+        </div>
+
+        <section id="projection-comparison-section">
+
+            <style>
+                /* すべてのスタイルを #projection-comparison-section 配下に限定（スコープ化） */
+                #projection-comparison-section {
+                    background: #f8f9fa;
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 40px 20px;
+                    color: #333333;
+                    width: 100%;
+                    max-width: 960px;
+                    margin: 20px auto;
+                    border-radius: 12px;
+                    box-sizing: border-box;
+                }
+        
+                /* 埋め込み先での崩れを防ぐためボックスモデルをリセット */
+                #projection-comparison-section *,
+                #projection-comparison-section *::before,
+                #projection-comparison-section *::after {
+                    box-sizing: border-box;
+                }
+        
+                #projection-comparison-section h1 {
+                    font-size: 22px;
+                    margin: 0 0 5px 0;
+                    font-weight: 700;
+                    color: #333333;
+                    text-align: center;
+                }
+        
+                #projection-comparison-section p {
+                    font-size: 14px;
+                    color: #666666;
+                    margin: 0 0 20px 0;
+                    text-align: center;
+                }
+                
+                #projection-comparison-section .wrap {
+                    display: flex;
+                    gap: 40px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    width: 100%;
+                }
+                
+                #projection-comparison-section .scene {
+                    width: 100%;
+                    max-width: 340px;
+                    height: 380px;
+                    background: #ffffff;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 20px 15px;
+                }
+                
+                #projection-comparison-section .label {
+                    font-size: 15px;
+                    margin-bottom: 15px;
+                    font-weight: bold;
+                    display: inline-block;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    color: white;
+                }
+                #projection-comparison-section .label-iso { background-color: #34495e; }
+                #projection-comparison-section .label-pers { background-color: #e74c3c; }
+        
+                #projection-comparison-section .view {
+                    width: 250px;
+                    height: 220px;
+                    position: relative;
+                    transform-style: preserve-3d; 
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+        
+                /* 共通の角度設定 */
+                #projection-comparison-section .common-angle {
+                    transform: rotateX(20deg) rotateY(-35deg);
+                }
+        
+                /* 1. 左側：パースなし */
+                #projection-comparison-section .no-perspective .view {
+                    transform: rotateX(20deg) rotateY(-35deg);
+                }
+        
+                /* 2. 右側：パースあり */
+                #projection-comparison-section .with-perspective .scene-stage {
+                    perspective: 400px;
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                }
+                #projection-comparison-section .with-perspective .view {
+                    transform: rotateX(20deg) rotateY(-35deg);
+                    transform-style: preserve-3d;
+                }
+        
+                #projection-comparison-section .cube {
+                    width: 100px;
+                    height: 100px;
+                    position: absolute;
+                    transform-style: preserve-3d;
+                }
+        
+                #projection-comparison-section .face {
+                    position: absolute;
+                    width: 100px;
+                    height: 100px;
+                    border: 1.5px solid #333333;
+                }
+        
+                #projection-comparison-section .base .face {
+                    background: rgba(135, 206, 250, 0.25);
+                    border: 1px dashed rgba(51, 51, 51, 0.6);
+                }
+        
+                #projection-comparison-section .front  { transform: translateZ(50px); }
+                #projection-comparison-section .back   { transform: rotateY(180deg) translateZ(50px); }
+                #projection-comparison-section .right  { transform: rotateY(90deg) translateZ(50px); }
+                #projection-comparison-section .left   { transform: rotateY(-90deg) translateZ(50px); }
+                #projection-comparison-section .top    { transform: rotateX(90deg) translateZ(50px); }
+                #projection-comparison-section .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        
+                #projection-comparison-section .moving-face {
+                    border: 2px solid #333333;
+                    animation: comparisonSectionSlide 2.5s infinite alternate ease-in-out;
+                }
+        
+                #projection-comparison-section .no-perspective .moving-face { background: rgba(60, 179, 113, 0.75); }
+                #projection-comparison-section .with-perspective .moving-face { background: rgba(255, 99, 71, 0.75); }
+        
+                /* 他のアニメーションと競合しない固有の名前 */
+                @keyframes comparisonSectionSlide {
+                    0% { transform: translateZ(50px); }
+                    100% { transform: translateZ(160px); }
+                }
+        
+                #projection-comparison-section .caption {
+                    font-size: 12px;
+                    color: #555555;
+                    line-height: 1.5;
+                    margin-top: auto;
+                    text-align: center;
+                }
+            </style>
+        
+            <h3>同じ回転角度（rotateX: 20deg, rotateY: -35deg）で、パースの有無を比較します。</h3>
+        
+            <div class="wrap">
+                <div class="scene no-perspective">
+                    <div class="label label-iso">1. 平行投影 (角度統一)</div>
+                    <div class="view">
+                        <div class="cube base">
+                            <div class="face back"></div>
+                            <div class="face right"></div>
+                            <div class="face left"></div>
+                            <div class="face top"></div>
+                            <div class="face bottom"></div>
+                        </div>
+                        <div class="cube">
+                            <div class="face front moving-face"></div>
+                        </div>
+                    </div>
+                    <div class="caption">
+                        物体が手前に来ても平行移動するだけ。<br>
+                        遠近感が生じず、機械的な図面表現に適しています。
+                    </div>
+                </div>
+        
+                <div class="scene with-perspective">
+                    <div class="label label-pers">2. 二点透視 (角度統一)</div>
+                    <div class="scene-stage">
+                        <div class="view">
+                            <div class="cube base">
+                                <div class="face back"></div>
+                                <div class="face right"></div>
+                                <div class="face left"></div>
+                                <div class="face top"></div>
+                                <div class="face bottom"></div>
+                            </div>
+                            <div class="cube">
+                                <div class="face front moving-face"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caption">
+                        手前に来ると大きく歪んで見える。<br>
+                        人間が見る現実に近い、自然な奥行き感が生じます。
+                    </div>
+                </div>
+            </div>
+        
+        </section>
+        
+        <div class="lab-card" style="margin: 20px auto; border-left: 4px solid var(--color-primary);">
+            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--bg-dark-accent);">
+                💡<code>perspective</code>を設定することで位置が発生になる
+            </h3>
+            <p>
+                <span style="color: orange;font-weight: bold;">perspective</span>
+                を指定すると、上の製図のように<b>平行線から消失点に収束する線</b>に変換されます
+            </p>
+            <p>
+                それによって物体から消失点までの距離とカメラ位置によって物体の見え方がかわります。
+            </p>
+        </div>
+
+        <div class="lab-card" style="margin: 20px auto; border-left: 4px solid var(--color-primary);">
+            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--bg-dark-accent);">
+                💡transformの子要素への 補助線（座標空間）の引き継ぎ
+            </h3>
+            <p>
+                要素に <code>transform</code> を指定すると、上の製図のように<b>自身を起点とした独自の「3D補助線（ローカル座標空間）」</b>が展開されます。
+            </p>
+            <p>
+                親要素は、この補助線のルールを子要素にも強制的に適用することで、自分自身の回転や移動に子要素を美しく連動させています。
+            </p>
+            <p style="margin-bottom: 0;">
+                しかし、子要素に引き継がれる補助線の初期設定（<code>transform-style: flat</code>）では、<b>Z軸（奥行き）のルールが強制的に「0（平面）」にリセット</b>されてしまいます。これが、子要素が立体的に動いても親の面で押し潰されてしまう原因です。
+            </p>
+        </div>
+        <div class="lab-card">
+            <p>視線の進むカタチが「直線」から「放射状」に狭まることで、初めて奥のものが小さく映るようになります（遠近感の誕生）。</p>
+
+            <div class="comparison-container">
+                <div class="column">
+                    <div class="title"><span class="badge badge-cone">1</span> perspective: 300px (四角錐空間)</div>
+                    <div class="code-preview-badge">
+                        動的変形結果: translateZ = <span id="z-value-display-cone">+0</span>px
+                    </div>
+
+                    <div class="section-label">横から見た断面図 (Side View)</div>
+                    <div class="scene-sim">
+                        <div class="eye"></div>
+                        <div class="vision-line line-top-cone"></div>
+                        <div class="vision-line line-bottom-cone"></div>
+                        <div class="z-grid" style="left: 120px;">+120px</div>
+                        <div class="z-grid" style="left: 360px;">-120px</div>
+                        <div class="monitor-line"></div>
+                        <div class="monitor-label">画面 (Z = 0)</div>
+                        <div class="element-side" id="side-el-cone"></div>
+                    </div>
+
+                    <div class="section-label">3D空間の構図 (rotateY連動)</div>
+                    <div class="scene-sim front-stage">
+                        <div class="camera-rotation-wrapper" id="wrapper-cone">
+                            <div class="perspective-container" style="perspective: 300px;">
+                                <div class="virtual-monitor-plane"></div>
+                                <div class="element-front" id="front-el-cone">perspectiveあり</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="description">
+                        斜めから（rotateYさせて）見ると、要素が「元の画面（Z=0）」を前後に突き抜けているのが分かります。視線が広がっているため、手前に引き出すと大きく見えます。
+                    </div>
+
+                    <div class="control-panel">
+                        <div class="slider-container">
+                            <label for="angle-slider-cone">回転 (rotateY):</label>
+                            <input type="range" id="angle-slider-cone" min="0" max="75" value="0">
+                            <span class="view-angle-display" id="angle-display-cone">0deg (正面)</span>
+                        </div>
+                        <div class="code-preview-badge">
+                            CSS: transform: <span id="rotate-value-display-cone">rotateY(0deg)</span>;
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="title"><span class="badge badge-parallel">2</span> perspective: なし (平行投影空間)</div>
+                    <div class="code-preview-badge">
+                        動的変形結果: translateZ = <span id="z-value-display-parallel">+0</span>px
+                    </div>
+
+                    <div class="section-label">横から見た断面図 (Side View)</div>
+                    <div class="scene-sim">
+                        <div class="eye-parallel"></div>
+                        <div class="vision-line line-top-parallel"></div>
+                        <div class="vision-line line-bottom-parallel"></div>
+                        <div class="z-grid" style="left: 120px;">+120px</div>
+                        <div class="z-grid" style="left: 360px;">-120px</div>
+                        <div class="monitor-line"></div>
+                        <div class="monitor-label">画面 (Z = 0)</div>
+                        <div class="element-side" id="side-el-parallel"></div>
+                    </div>
+
+                    <div class="section-label">3D空間の構図 (rotateY連動)</div>
+                    <div class="scene-sim front-stage">
+                        <div class="camera-rotation-wrapper" id="wrapper-parallel">
+                            <div class="perspective-container">
+                                <div class="virtual-monitor-plane"></div>
+                                <div class="element-front" id="front-el-parallel">perspectiveなし</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="description">
+                        角度を付けて傾けても、奥に回った辺と手前に来た辺が、<b>完全に同じ長さ（等角投影）</b>をキープして綺麗に平行なまま回転します。
+                    </div>
+
+                    <div class="control-panel">
+                        <div class="slider-container">
+                            <label for="angle-slider-parallel">回転 (rotateY):</label>
+                            <input type="range" id="angle-slider-parallel" min="0" max="75" value="0">
+                            <span class="view-angle-display" id="angle-display-parallel">0deg (正面)</span>
+                        </div>
+                        <div class="code-preview-badge">
+                            CSS: transform: <span id="rotate-value-display-parallel">rotateY(0deg)</span>;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <section>
+        <h2>2. transform-style: preserve-3d とは何か</h2>
+        <div class="lab-card">
+            <p><strong>1. 親要素の transform：絶対的な座標空間の生成</strong><br>
+                要素に <code>transform</code> を指定した瞬間、その要素は自身を起点とする「独自の座標空間（補助線）」を生成します。同時に、内側の子要素たちに対して強力な強制力（支配権）を持ちます。
+            </p>
+
+            <p><strong>2. デフォルト（flat）：Z軸の没収と2D平面への強制</strong><br>
+                子要素に強制する補助線の初期値は <code>flat</code>（2D空間）です。<br>
+                ・<b>X 軸・Y 軸：</b> 親の補助線と同期するため、位置や2D的な回転は連動します。<br>
+                ・<b>Z 軸（強制リセット）：</b> 親のルールに「奥行き（Z）」が存在しないため、子要素がローカル軸でどれだけ立体的に動いても、親の境界線をまたぐ瞬間に <b>Z 軸のデータが 0
+                    へと強制修正（押し潰し）</b> されます。これが立体構造の崩壊原因です。</p>
+
+            <p><strong>3. preserve-3d：3D補助線の完全な解放とドッキング</strong><br>
+                値を <code>preserve-3d</code> に変更することで、親要素は<b>「Z
+                    軸も含めたすべての3D補助線」</b>をセットにして子要素に引き継ぐようになります。これにより立体情報が破壊されることなく、ひとつの塊として美しく連動できるようになります。
+            </p>
+
+            <div class="proof-container">
+                <div class="demo-block">
+                    <div class="scene">
+                        <div class="cube-parent flat">
+                            <div class="face front">F</div>
+                            <div class="face back">B</div>
+                            <div class="face right">R</div>
+                            <div class="face left">L</div>
+                            <div class="face top">T</div>
+                            <div class="face bottom">Bo</div>
+                        </div>
+                    </div>
+                    <div class="lab-tag">
+                        <span class="tag-flat">transform-style: flat;</span><br>
+                        <strong>デフォルト：Z軸の強制没収</strong><br>
+                        子要素の奥行きが消失し、親の2D平面に押し潰されたまま回転します。
+                    </div>
+                </div>
+
+                <div class="demo-block">
+                    <div class="scene">
+                        <div class="cube-parent p3d">
+                            <div class="face front">F</div>
+                            <div class="face back">B</div>
+                            <div class="face right">R</div>
+                            <div class="face left">L</div>
+                            <div class="face top">T</div>
+                            <div class="face bottom">Bo</div>
+                        </div>
+                    </div>
+                    <div class="lab-tag">
+                        <span class="tag-p3d">transform-style: preserve-3d;</span><br>
+                        <strong>空間共有：3D補助線の完全引き継ぎ</strong><br>
+                        子要素のZ軸が維持され、1つの美しい立方体として連動します。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        const sliderCone = document.getElementById('angle-slider-cone');
+        const angleDisplayCone = document.getElementById('angle-display-cone');
+        const rotateValueCone = document.getElementById('rotate-value-display-cone');
+        const wrapperCone = document.getElementById('wrapper-cone');
+
+        const sliderParallel = document.getElementById('angle-slider-parallel');
+        const angleDisplayParallel = document.getElementById('angle-display-parallel');
+        const rotateValueParallel = document.getElementById('rotate-value-display-parallel');
+        const wrapperParallel = document.getElementById('wrapper-parallel');
+
+        const zDisplayCone = document.getElementById('z-value-display-cone');
+        const zDisplayParallel = document.getElementById('z-value-display-parallel');
+
+        const sideElCone = document.getElementById('side-el-cone');
+        const frontElCone = document.getElementById('front-el-cone');
+        const sideElParallel = document.getElementById('side-el-parallel');
+        const frontElParallel = document.getElementById('front-el-parallel');
+
+        // スライダー連動イベント処理の共通化
+        function handleSliderInput(e, display, codeView, wrapper) {
+            const angle = e.target.value;
+            display.textContent = angle == 0 ? "0deg (正面)" : `${angle}deg`;
+            codeView.textContent = `rotateY(${angle}deg)`;
+            wrapper.style.transform = `rotateY(${angle}deg)`;
+        }
+
+        sliderCone.addEventListener('input', (e) => handleSliderInput(e, angleDisplayCone, rotateValueCone, wrapperCone));
+        sliderParallel.addEventListener('input', (e) => handleSliderInput(e, angleDisplayParallel, rotateValueParallel, wrapperParallel));
+
+        // 往復移動（translateZ）のアニメーションループ
+        const minZ = -120;
+        const maxZ = 120;
+        const duration = 3000;
+        let startTime = null;
+
+        function update(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+
+            const progress = (Math.sin((elapsed / duration) * Math.PI - Math.PI / 2) + 1) / 2;
+            const currentZ = Math.round(minZ + (maxZ - minZ) * progress);
+
+            const zText = currentZ >= 0 ? `+${currentZ}` : currentZ;
+            zDisplayCone.textContent = zText;
+            zDisplayParallel.textContent = zText;
+
+            const sideLeftPosition = 240 - currentZ;
+            sideElCone.style.left = `${sideLeftPosition}px`;
+            sideElParallel.style.left = `${sideLeftPosition}px`;
+
+            frontElCone.style.transform = `translateZ(${currentZ}px)`;
+            frontElParallel.style.transform = `translateZ(${currentZ}px)`;
+
+            requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    </script>
+<style>
+
+    .p3d-section {
+        --p3d-bg-main: #f1f5f9;
+        --p3d-bg-card: #ffffff;
+        --p3d-bg-dark: #0f172a;
+        --p3d-text-main: #334155;
+        --p3d-text-muted: #64748b;
+        --p3d-color-primary: #3b82f6;
+        --p3d-color-warning: #f59e0b;
+        --p3d-color-accent: #ef4444;
+        --p3d-border: #cbd5e1;
+    
+        --hl-tag: #f472b6;
+        --hl-attr: #38bdf8;
+        --hl-val: #fbbf24;
+        --hl-sel: #818cf8;
+        --hl-prop: #38bdf8;
+    
+        background: var(--p3d-bg-card);
+        color: var(--p3d-text-main);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        padding: 40px;
+        border-radius: 16px;
+        margin: 40px 0;
+        border: 1px solid var(--p3d-border);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+        max-width: 950px;
+        box-sizing: border-box;
+    }
+    
+    .p3d-section h2 {
+        font-size: 22px;
+        margin: 0 0 8px 0;
+        color: var(--p3d-bg-dark);
+        font-weight: 700;
+    }
+    
+    .p3d-section .p3d-desc {
+        font-size: 14px;
+        color: var(--p3d-text-muted);
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    /* 立方体コンテナ */
+    .p3d-section .cube-3d-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 200px;
+        height: 200px;
+        transform-style: preserve-3d;
+        transform: translate(-50%, -50%) rotateX(15deg);
+        animation: p3d-spin 10s linear infinite;
+    }
+    
+    @keyframes p3d-spin {
+        from { transform: translate(-50%, -50%) rotateX(15deg) rotateY(0deg); }
+        to   { transform: translate(-50%, -50%) rotateX(15deg) rotateY(360deg); }
+    }
+    
+    /* 面スタイル */
+    .p3d-section .face-front {
+        background: rgba(239, 68, 68, 0.65);
+        border-color: #f87171;
+        transform: translate(-50%, -50%) translateZ(50px);
+    }
+    .p3d-section .face-back {
+        background: rgba(59, 130, 246, 0.65);
+        border-color: #60a5fa;
+        transform: translate(-50%, -50%) rotateY(180deg) translateZ(50px);
+    }
+    .p3d-section .face-right {
+        background: rgba(16, 185, 129, 0.5);
+        border-color: #34d399;
+        transform: translate(-50%, -50%) rotateY(90deg) translateZ(50px);
+    }
+    .p3d-section .face-left {
+        background: rgba(245, 158, 11, 0.5);
+        border-color: #fbbf24;
+        transform: translate(-50%, -50%) rotateY(-90deg) translateZ(50px);
+    }
+    
+    /* コード表示 */
+    .p3d-section .code {
+        background: #0b1329;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 15px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        margin: 20px auto;
+    }
+    
+    .p3d-section .code pre {
+        margin: 0;
+        white-space: pre;
+    }
+    
+    .p3d-section .code code {
+        font-family: 'Fira Code', Consolas, Monaco, monospace;
+        font-size: 11px;
+        line-height: 1.6;
+        color: #94a3b8;
+        background: none !important;
+        text-shadow: none !important;
+    }
+    
+    .p3d-section .code .t-tg { color: var(--hl-tag); }
+    .p3d-section .code .t-at { color: var(--hl-attr); }
+    .p3d-section .code .t-vl { color: var(--hl-val); }
+    .p3d-section .code .t-sl { color: var(--hl-sel); }
+    .p3d-section .code .t-pr { color: var(--hl-prop); }
+    
+    /* 解説ボックス */
+    .p3d-section .explain-box {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .p3d-section .card {
+        background: var(--p3d-bg-main);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid var(--p3d-border);
+        border-left: 5px solid var(--p3d-text-muted);
+        box-sizing: border-box;
+    }
+    
+    .p3d-section .card h3 {
+        margin: 0 0 10px 0;
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .p3d-section .card p {
+        margin: 0 0 16px 0;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--p3d-text-main);
+    }
+    
+    .p3d-section .card p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .p3d-section .card p code {
+        background: rgba(15, 23, 42, 0.05);
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: #ff007f;
+    }
+    
+    .p3d-section .c-scene { border-left-color: var(--p3d-color-primary); }
+    .p3d-section .c-scene h3 { color: var(--p3d-color-primary); }
+    
+    .p3d-section .c-cube  { border-left-color: var(--p3d-color-warning); }
+    .p3d-section .c-cube h3 { color: #b45309; }
+    
+    .p3d-section .c-face  { border-left-color: var(--p3d-color-accent); }
+    .p3d-section .c-face h3 { color: var(--p3d-color-accent); }
+    
+    </style>
+    
+
+<section class="p3d-section">
+
+    <h2>perspective と transform-style: preserve-3d の相互役割</h2>
+    <div class="p3d-desc">
+        カメラ（視点位置）から放たれた光線が中心軸（コンテナ）を貫通し、それぞれのパネルに立体的な遠近感（パース）を届ける構造の可視化デモです。
+    </div>
+    <div>
+        <img src="./img/perspective-perspective-3d.png"  style="width: 100%;border-radius: 10px;" >
+    </div>
+
+            <div class="code">
+            <pre><code>&lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"scene"</span>&gt;
+    &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"cube"</span>&gt;
+        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face front"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:0"</span>&gt;front&lt;/<span class="t-tg">div</span>&gt;
+        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face back"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:90"</span>&gt;back&lt;/<span class="t-tg">div</span>&gt;
+        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face right"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:180"</span>&gt;right&lt;/<span class="t-tg">div</span>&gt;
+        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face left"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:270"</span>&gt;left&lt;/<span class="t-tg">div</span>&gt;
+    &lt;/<span class="t-tg">div</span>&gt;
+&lt;/<span class="t-tg">div</span>&gt;
+&lt;<span class="t-tg">style</span>&gt;
+    <span class="t-sl">.scene</span> {
+        <span class="t-pr">perspective</span>: <span class="t-vl">600px</span>;
+    }
+    <span class="t-sl">.cube</span> {
+        <span class="t-pr">transform</span>: <span class="t-vl">rotateY(--var(turn))</span>;
+        <span class="t-pr">transform-style</span>: <span class="t-vl">preserve-3d</span>;
+    }
+    <span class="t-sl">.front,.back,.right,.left</span> {
+        <span class="t-pr">transform</span>: <span class="t-vl">rotateY(calc(var(--yDeg)*1deg) translateZ(50px))</span>;
+    }
+&lt;/<span class="t-tg">style</span>&gt;</code></pre>
+        </div>
+
+    <div class="explain-box">
+
+
+        
+        <div class="card c-scene">
+            <h3>🔹 ① .scene の役割：カメラ（レンズ）の役割をするルートを設置</h3>
+            <p>ルート要素に <code>perspective</code> を指定することで、3D空間を見つめる「カメラ位置」を固定します。この数値が小さいほど広角レンズのように強く歪み、大きいほど望遠レンズのように平行に近づきます。</p>
+        </div>
+
+        <div class="card c-cube">
+            <h3>🔸 ② .cube の役割：共通した3D空間の作成</h3>
+            <p>中間のコンテナ要素に <code>transform</code> を指定します。こうすることで、子を共通した<span class="c-s">transform</span>の補助線で連動させることができます。</p>
+            <p>子要素のZ軸方向に適用する補助線は0のため、立体構造を保持するには <code class="c-v">preserve-3d</code>が 必須になります</p>
+        </div>
+
+        <div class="card c-face">
+            <h3>🔻 ③ .face の役割：空間内での実配置</h3>
+            <p>
+                ルートから中間コンテナまでの
+                引き継がれたパース空間のルールの中で、それぞれのパネルが <code>translateZ</code> や <code>rotate</code> を使って実際に手前や奥へと飛び出すように配置されます。
+                共通のカメラから見た距離に応じて、自動的に大きさが歪み、立体に見えるようになります。</p>
+        </div>
+
+    </div>
+
+</section>
+
+</body>
+
+</html>
