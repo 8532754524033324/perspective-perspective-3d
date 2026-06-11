@@ -17,6 +17,9 @@
             --color-accent-flat: #ef4444;
             --color-success: #10b981;
             --grid-pattern: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
+            --bg-light-accent: #f8fafc;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
         }
 
         body {
@@ -650,7 +653,7 @@
                     <span class="badge-mini" style="background: var(--color-primary);">Property 01</span>
                     <span style="color: gold;">perspective</span>
                 </h2>
-                <p>奥行き方向の平行線を「消失点へと収束する線」に変え、四角錐の視界を作ることで、手前を大きく・奥を小さく映す<b>遠近感</b>を生み出します。</p>
+                <p>奥行き方向の平行線を「消失点へと収束する線」に変え、四角錐の視界を作ることで、手前を大きく・奥を小さく映す<b>遠近感</b>を生じさせる</p>
             </div>
             <div class="header-card">
                 <h2>
@@ -658,7 +661,7 @@
                     <span style="color: gold;">transform-style: preserve-3d</span>
 
                 </h2>
-                <p>初期値 <code>flat</code> による「Z軸のデータ没収（平面潰し）」を解除し、子要素が持つ独自の立体空間ルールを<b>親の3D空間へそのまま同期・結合</b>させます。</p>
+                <p>初期値 <code>flat</code> による「Z軸のデータ没収（平面潰し）」を解除し、子要素が持つ独自の立体空間ルールを<b>親の3D空間へそのまま統合</b>させる</p>
             </div>
         </div>
     </header>
@@ -723,6 +726,14 @@
                     font-size: 14px;
                     color: #666666;
                     margin: 0 0 20px 0;
+                    text-align: center;
+                }
+
+                #projection-comparison-section h3 {
+                    font-size: 16px;
+                    color: #333333;
+                    margin: 0 0 20px 0;
+                    font-weight: 600;
                     text-align: center;
                 }
                 
@@ -842,11 +853,11 @@
                 }
             </style>
         
-            <h3>同じ回転角度（rotateX: 20deg, rotateY: -35deg）で、パースの有無を比較します。</h3>
+            <h3>perspectiveは平行投影を二点透視に線を修正しているだけ</h3>
         
             <div class="wrap">
                 <div class="scene no-perspective">
-                    <div class="label label-iso">1. 平行投影 (角度統一)</div>
+                    <div class="label label-iso">1. 平行投影</div>
                     <div class="view">
                         <div class="cube base">
                             <div class="face back"></div>
@@ -866,7 +877,7 @@
                 </div>
         
                 <div class="scene with-perspective">
-                    <div class="label label-pers">2. 二点透視 (角度統一)</div>
+                    <div class="label label-pers">2. 二点透視</div>
                     <div class="scene-stage">
                         <div class="view">
                             <div class="cube base">
@@ -892,7 +903,7 @@
         
         <div class="lab-card" style="margin: 20px auto; border-left: 4px solid var(--color-primary);">
             <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--bg-dark-accent);">
-                💡<code>perspective</code>を設定することで位置が発生になる
+                💡<code>perspective</code>を設定することで遠近感が生じる
             </h3>
             <p>
                 <span style="color: orange;font-weight: bold;">perspective</span>
@@ -908,13 +919,13 @@
                 💡transformの子要素への 補助線（座標空間）の引き継ぎ
             </h3>
             <p>
-                要素に <code>transform</code> を指定すると、上の製図のように<b>自身を起点とした独自の「3D補助線（ローカル座標空間）」</b>が展開されます。
+                要素に <code>transform</code> を指定すると、上の製図のように<b>自身を起点とした独自の「3D補助線（ローカル座標空間）」</b>が展開されます
             </p>
             <p>
                 親要素は、この補助線のルールを子要素にも強制的に適用することで、自分自身の回転や移動に子要素を美しく連動させています。
             </p>
             <p style="margin-bottom: 0;">
-                しかし、子要素に引き継がれる補助線の初期設定（<code>transform-style: flat</code>）では、<b>Z軸（奥行き）のルールが強制的に「0（平面）」にリセット</b>されてしまいます。これが、子要素が立体的に動いても親の面で押し潰されてしまう原因です。
+                しかし、子要素に引き継がれる補助線の初期設定（<code>transform-style: flat</code>）では、<b>Z軸（奥行き）のルールが強制的に「0（平面）」に潰されます</b>
             </p>
         </div>
         <div class="lab-card">
@@ -950,7 +961,7 @@
                     </div>
 
                     <div class="description">
-                        斜めから（rotateYさせて）見ると、要素が「元の画面（Z=0）」を前後に突き抜けているのが分かります。視線が広がっているため、手前に引き出すと大きく見えます。
+                        斜めから（rotateYさせて）見ると、要素が「元の画面（Z=0）」を前後に突き抜けているのが分かります。視線が広がっているため、手前の要素が見かけ上、大きく歪みます。
                     </div>
 
                     <div class="control-panel">
@@ -994,7 +1005,7 @@
                     </div>
 
                     <div class="description">
-                        角度を付けて傾けても、奥に回った辺と手前に来た辺が、<b>完全に同じ長さ（等角投影）</b>をキープして綺麗に平行なまま回転します。
+                        角度を付けて傾けても、奥に回った辺と手前に来た辺が、<b>完全に同じ長さ（等角投影）</b>をキープして綺麗に平行なまま回転し続けます。
                     </div>
 
                     <div class="control-panel">
@@ -1012,352 +1023,51 @@
         </div>
     </section>
 
-
-
     <section>
-        <h2>2. transform-style: preserve-3d とは何か</h2>
-        <div class="lab-card">
-            <p><strong>1. 親要素の transform：絶対的な座標空間の生成</strong><br>
-                要素に <code>transform</code> を指定した瞬間、その要素は自身を起点とする「独自の座標空間（補助線）」を生成します。同時に、内側の子要素たちに対して強力な強制力（支配権）を持ちます。
-            </p>
+        <h2>2. transform-style: preserve-3d は「Z軸データの透過」</h2>
 
-            <p><strong>2. デフォルト（flat）：Z軸の没収と2D平面への強制</strong><br>
-                子要素に強制する補助線の初期値は <code>flat</code>（2D空間）です。<br>
-                ・<b>X 軸・Y 軸：</b> 親の補助線と同期するため、位置や2D的な回転は連動します。<br>
-                ・<b>Z 軸（強制リセット）：</b> 親のルールに「奥行き（Z）」が存在しないため、子要素がローカル軸でどれだけ立体的に動いても、親の境界線をまたぐ瞬間に <b>Z 軸のデータが 0
-                    へと強制修正（押し潰し）</b> されます。これが立体構造の崩壊原因です。</p>
-
-            <p><strong>3. preserve-3d：3D補助線の完全な解放とドッキング</strong><br>
-                値を <code>preserve-3d</code> に変更することで、親要素は<b>「Z
-                    軸も含めたすべての3D補助線」</b>をセットにして子要素に引き継ぐようになります。これにより立体情報が破壊されることなく、ひとつの塊として美しく連動できるようになります。
-            </p>
-
-            <div class="proof-container">
-                <div class="demo-block">
-                    <div class="scene">
-                        <div class="cube-parent flat">
-                            <div class="face front">F</div>
-                            <div class="face back">B</div>
-                            <div class="face right">R</div>
-                            <div class="face left">L</div>
-                            <div class="face top">T</div>
-                            <div class="face bottom">Bo</div>
-                        </div>
-                    </div>
-                    <div class="lab-tag">
-                        <span class="tag-flat">transform-style: flat;</span><br>
-                        <strong>デフォルト：Z軸の強制没収</strong><br>
-                        子要素の奥行きが消失し、親の2D平面に押し潰されたまま回転します。
+        <div class="proof-container">
+            <div class="demo-block">
+                <div class="title" style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--bg-dark-accent);">
+                    <span class="tag-flat">flat</span> — 子要素のZ軸を潰す
+                </div>
+                <div class="scene">
+                    <div class="cube-parent flat">
+                        <div class="face front">Front</div>
+                        <div class="face back">Back</div>
+                        <div class="face right">Right</div>
+                        <div class="face left">Left</div>
+                        <div class="face top">Top</div>
+                        <div class="face bottom">Bottom</div>
                     </div>
                 </div>
+                <div class="lab-tag" style="margin-top: 30px;">
+                    すべての面が親の回転に「平面のまま」従う。<br>
+                    3D感がなく、フラットに見えます。
+                </div>
+            </div>
 
-                <div class="demo-block">
-                    <div class="scene">
-                        <div class="cube-parent p3d">
-                            <div class="face front">F</div>
-                            <div class="face back">B</div>
-                            <div class="face right">R</div>
-                            <div class="face left">L</div>
-                            <div class="face top">T</div>
-                            <div class="face bottom">Bo</div>
-                        </div>
+            <div class="demo-block">
+                <div class="title" style="font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--bg-dark-accent);">
+                    <span class="tag-p3d">preserve-3d</span> — 子要素のZ軸を保持
+                </div>
+                <div class="scene">
+                    <div class="cube-parent p3d">
+                        <div class="face front">Front</div>
+                        <div class="face back">Back</div>
+                        <div class="face right">Right</div>
+                        <div class="face left">Left</div>
+                        <div class="face top">Top</div>
+                        <div class="face bottom">Bottom</div>
                     </div>
-                    <div class="lab-tag">
-                        <span class="tag-p3d">transform-style: preserve-3d;</span><br>
-                        <strong>空間共有：3D補助線の完全引き継ぎ</strong><br>
-                        子要素のZ軸が維持され、1つの美しい立方体として連動します。
-                    </div>
+                </div>
+                <div class="lab-tag" style="margin-top: 30px;">
+                    各面が自身の立体的ルールを保ち、<br>
+                    親の回転に「立体のまま」従う。美しく立体的です。
                 </div>
             </div>
         </div>
     </section>
-    <script>
-        const sliderCone = document.getElementById('angle-slider-cone');
-        const angleDisplayCone = document.getElementById('angle-display-cone');
-        const rotateValueCone = document.getElementById('rotate-value-display-cone');
-        const wrapperCone = document.getElementById('wrapper-cone');
-
-        const sliderParallel = document.getElementById('angle-slider-parallel');
-        const angleDisplayParallel = document.getElementById('angle-display-parallel');
-        const rotateValueParallel = document.getElementById('rotate-value-display-parallel');
-        const wrapperParallel = document.getElementById('wrapper-parallel');
-
-        const zDisplayCone = document.getElementById('z-value-display-cone');
-        const zDisplayParallel = document.getElementById('z-value-display-parallel');
-
-        const sideElCone = document.getElementById('side-el-cone');
-        const frontElCone = document.getElementById('front-el-cone');
-        const sideElParallel = document.getElementById('side-el-parallel');
-        const frontElParallel = document.getElementById('front-el-parallel');
-
-        // スライダー連動イベント処理の共通化
-        function handleSliderInput(e, display, codeView, wrapper) {
-            const angle = e.target.value;
-            display.textContent = angle == 0 ? "0deg (正面)" : `${angle}deg`;
-            codeView.textContent = `rotateY(${angle}deg)`;
-            wrapper.style.transform = `rotateY(${angle}deg)`;
-        }
-
-        sliderCone.addEventListener('input', (e) => handleSliderInput(e, angleDisplayCone, rotateValueCone, wrapperCone));
-        sliderParallel.addEventListener('input', (e) => handleSliderInput(e, angleDisplayParallel, rotateValueParallel, wrapperParallel));
-
-        // 往復移動（translateZ）のアニメーションループ
-        const minZ = -120;
-        const maxZ = 120;
-        const duration = 3000;
-        let startTime = null;
-
-        function update(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const elapsed = timestamp - startTime;
-
-            const progress = (Math.sin((elapsed / duration) * Math.PI - Math.PI / 2) + 1) / 2;
-            const currentZ = Math.round(minZ + (maxZ - minZ) * progress);
-
-            const zText = currentZ >= 0 ? `+${currentZ}` : currentZ;
-            zDisplayCone.textContent = zText;
-            zDisplayParallel.textContent = zText;
-
-            const sideLeftPosition = 240 - currentZ;
-            sideElCone.style.left = `${sideLeftPosition}px`;
-            sideElParallel.style.left = `${sideLeftPosition}px`;
-
-            frontElCone.style.transform = `translateZ(${currentZ}px)`;
-            frontElParallel.style.transform = `translateZ(${currentZ}px)`;
-
-            requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-    </script>
-<style>
-
-    .p3d-section {
-        --p3d-bg-main: #f1f5f9;
-        --p3d-bg-card: #ffffff;
-        --p3d-bg-dark: #0f172a;
-        --p3d-text-main: #334155;
-        --p3d-text-muted: #64748b;
-        --p3d-color-primary: #3b82f6;
-        --p3d-color-warning: #f59e0b;
-        --p3d-color-accent: #ef4444;
-        --p3d-border: #cbd5e1;
-    
-        --hl-tag: #f472b6;
-        --hl-attr: #38bdf8;
-        --hl-val: #fbbf24;
-        --hl-sel: #818cf8;
-        --hl-prop: #38bdf8;
-    
-        background: var(--p3d-bg-card);
-        color: var(--p3d-text-main);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        padding: 40px;
-        border-radius: 16px;
-        margin: 40px 0;
-        border: 1px solid var(--p3d-border);
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
-        max-width: 950px;
-        box-sizing: border-box;
-    }
-    
-    .p3d-section h2 {
-        font-size: 22px;
-        margin: 0 0 8px 0;
-        color: var(--p3d-bg-dark);
-        font-weight: 700;
-    }
-    
-    .p3d-section .p3d-desc {
-        font-size: 14px;
-        color: var(--p3d-text-muted);
-        margin-bottom: 30px;
-        line-height: 1.6;
-    }
-    
-    /* 立方体コンテナ */
-    .p3d-section .cube-3d-container {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 200px;
-        height: 200px;
-        transform-style: preserve-3d;
-        transform: translate(-50%, -50%) rotateX(15deg);
-        animation: p3d-spin 10s linear infinite;
-    }
-    
-    @keyframes p3d-spin {
-        from { transform: translate(-50%, -50%) rotateX(15deg) rotateY(0deg); }
-        to   { transform: translate(-50%, -50%) rotateX(15deg) rotateY(360deg); }
-    }
-    
-    /* 面スタイル */
-    .p3d-section .face-front {
-        background: rgba(239, 68, 68, 0.65);
-        border-color: #f87171;
-        transform: translate(-50%, -50%) translateZ(50px);
-    }
-    .p3d-section .face-back {
-        background: rgba(59, 130, 246, 0.65);
-        border-color: #60a5fa;
-        transform: translate(-50%, -50%) rotateY(180deg) translateZ(50px);
-    }
-    .p3d-section .face-right {
-        background: rgba(16, 185, 129, 0.5);
-        border-color: #34d399;
-        transform: translate(-50%, -50%) rotateY(90deg) translateZ(50px);
-    }
-    .p3d-section .face-left {
-        background: rgba(245, 158, 11, 0.5);
-        border-color: #fbbf24;
-        transform: translate(-50%, -50%) rotateY(-90deg) translateZ(50px);
-    }
-    
-    /* コード表示 */
-    .p3d-section .code {
-        background: #0b1329;
-        border: 1px solid #1e293b;
-        border-radius: 8px;
-        padding: 15px;
-        box-sizing: border-box;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        margin: 20px auto;
-    }
-    
-    .p3d-section .code pre {
-        margin: 0;
-        white-space: pre;
-    }
-    
-    .p3d-section .code code {
-        font-family: 'Fira Code', Consolas, Monaco, monospace;
-        font-size: 11px;
-        line-height: 1.6;
-        color: #94a3b8;
-        background: none !important;
-        text-shadow: none !important;
-    }
-    
-    .p3d-section .code .t-tg { color: var(--hl-tag); }
-    .p3d-section .code .t-at { color: var(--hl-attr); }
-    .p3d-section .code .t-vl { color: var(--hl-val); }
-    .p3d-section .code .t-sl { color: var(--hl-sel); }
-    .p3d-section .code .t-pr { color: var(--hl-prop); }
-    
-    /* 解説ボックス */
-    .p3d-section .explain-box {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-    }
-    
-    .p3d-section .card {
-        background: var(--p3d-bg-main);
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid var(--p3d-border);
-        border-left: 5px solid var(--p3d-text-muted);
-        box-sizing: border-box;
-    }
-    
-    .p3d-section .card h3 {
-        margin: 0 0 10px 0;
-        font-size: 15px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .p3d-section .card p {
-        margin: 0 0 16px 0;
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--p3d-text-main);
-    }
-    
-    .p3d-section .card p:last-child {
-        margin-bottom: 0;
-    }
-    
-    .p3d-section .card p code {
-        background: rgba(15, 23, 42, 0.05);
-        padding: 2px 5px;
-        border-radius: 4px;
-        color: #ff007f;
-    }
-    
-    .p3d-section .c-scene { border-left-color: var(--p3d-color-primary); }
-    .p3d-section .c-scene h3 { color: var(--p3d-color-primary); }
-    
-    .p3d-section .c-cube  { border-left-color: var(--p3d-color-warning); }
-    .p3d-section .c-cube h3 { color: #b45309; }
-    
-    .p3d-section .c-face  { border-left-color: var(--p3d-color-accent); }
-    .p3d-section .c-face h3 { color: var(--p3d-color-accent); }
-    
-    </style>
-    
-
-<section class="p3d-section">
-
-    <h2>perspective と transform-style: preserve-3d の相互役割</h2>
-    <div class="p3d-desc">
-        カメラ（視点位置）から放たれた光線が中心軸（コンテナ）を貫通し、それぞれのパネルに立体的な遠近感（パース）を届ける構造の可視化デモです。
-    </div>
-    <div>
-        <img src="./img/perspective-perspective-3d.png"  style="width: 100%;border-radius: 10px;" >
-    </div>
-
-            <div class="code">
-            <pre><code>&lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"scene"</span>&gt;
-    &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"cube"</span>&gt;
-        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face front"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:0"</span>&gt;front&lt;/<span class="t-tg">div</span>&gt;
-        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face back"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:90"</span>&gt;back&lt;/<span class="t-tg">div</span>&gt;
-        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face right"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:180"</span>&gt;right&lt;/<span class="t-tg">div</span>&gt;
-        &lt;<span class="t-tg">div</span> <span class="t-at">class</span>=<span class="t-vl">"face left"</span> <span class="t-at">style</span>=<span class="t-vl">"--yDeg:270"</span>&gt;left&lt;/<span class="t-tg">div</span>&gt;
-    &lt;/<span class="t-tg">div</span>&gt;
-&lt;/<span class="t-tg">div</span>&gt;
-&lt;<span class="t-tg">style</span>&gt;
-    <span class="t-sl">.scene</span> {
-        <span class="t-pr">perspective</span>: <span class="t-vl">600px</span>;
-    }
-    <span class="t-sl">.cube</span> {
-        <span class="t-pr">transform</span>: <span class="t-vl">rotateY(--var(turn))</span>;
-        <span class="t-pr">transform-style</span>: <span class="t-vl">preserve-3d</span>;
-    }
-    <span class="t-sl">.front,.back,.right,.left</span> {
-        <span class="t-pr">transform</span>: <span class="t-vl">rotateY(calc(var(--yDeg)*1deg) translateZ(50px))</span>;
-    }
-&lt;/<span class="t-tg">style</span>&gt;</code></pre>
-        </div>
-
-    <div class="explain-box">
-
-
-        
-        <div class="card c-scene">
-            <h3>🔹 ① .scene の役割：カメラ（レンズ）の役割をするルートを設置</h3>
-            <p>ルート要素に <code>perspective</code> を指定することで、3D空間を見つめる「カメラ位置」を固定します。この数値が小さいほど広角レンズのように強く歪み、大きいほど望遠レンズのように平行に近づきます。</p>
-        </div>
-
-        <div class="card c-cube">
-            <h3>🔸 ② .cube の役割：共通した3D空間の作成</h3>
-            <p>中間のコンテナ要素に <code>transform</code> を指定します。こうすることで、子を共通した<span class="c-s">transform</span>の補助線で連動させることができます。</p>
-            <p>子要素のZ軸方向に適用する補助線は0のため、立体構造を保持するには <code class="c-v">preserve-3d</code>が 必須になります</p>
-        </div>
-
-        <div class="card c-face">
-            <h3>🔻 ③ .face の役割：空間内での実配置</h3>
-            <p>
-                ルートから中間コンテナまでの
-                引き継がれたパース空間のルールの中で、それぞれのパネルが <code>translateZ</code> や <code>rotate</code> を使って実際に手前や奥へと飛び出すように配置されます。
-                共通のカメラから見た距離に応じて、自動的に大きさが歪み、立体に見えるようになります。</p>
-        </div>
-
-    </div>
-
-</section>
 
 </body>
 
